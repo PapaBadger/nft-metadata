@@ -21,7 +21,7 @@
         let signer;
         let tokenContract;
 
-        const tokenAddress = "0xcd1F3fC207a6BA730Bd8844Cd13D3d4e32E935A1";
+        const tokenAddress = ethers.utils.getAddress("0xcd1F3fC207a6BA730Bd8844Cd13D3d4e32E935A1");
         const tokenABI = [
             // Minimal ERC20 ABI
             "function balanceOf(address) view returns (uint256)",
