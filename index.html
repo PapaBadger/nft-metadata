@@ -21,9 +21,7 @@
         let signer;
         let tokenContract;
 
-        const tokenAddress = ethers.utils.getAddress("0xCd1F3Fc207A6Ba730Bd8844Cd13D3d4e32e935a1");
         const tokenABI = [
-            // Minimal ERC20 ABI
             "function balanceOf(address) view returns (uint256)",
             "function transfer(address to, uint amount) returns (bool)"
         ];
@@ -37,27 +35,48 @@
             provider = new ethers.providers.Web3Provider(window.ethereum);
             await provider.send("eth_requestAccounts", []);
             signer = provider.getSigner();
+
+            const tokenAddress = ethers.utils.getAddress("0xCd1F3Fc207A6Ba730Bd8844Cd13D3d4e32e935a1");
             tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
         }
 
         async function getBlockHeight() {
-            await connect();
-            const block = await provider.getBlockNumber();
-            document.getElementById("blockHeight").innerText = "Current block: " + block;
+            try {
+                await connect();
+                const block = await provider.getBlockNumber();
+                document.getElementById("blockHeight").innerText = "Current block: " + block;
+            } catch (err) {
+                console.error("Error getting block height:", err);
+            }
         }
 
         async function getTokenBalance() {
-            await connect();
-            const address = await signer.getAddress();
-            const balance = await tokenContract.balanceOf(address);
-            document.getElementById("balance").innerText = "Your token balance: " + ethers.utils.formatUnits(balance, 18);
+            try {
+                await connect();
+                const address = await signer.getAddress();
+                const balance = await tokenContract.balanceOf(address);
+                document.getElementById("balance").innerText =
+                    "Your token balance: " + ethers.utils.formatUnits(balance, 18);
+            } catch (err) {
+                console.error("Error checking balance:", err);
+            }
         }
 
         async function transferTokens() {
-            await connect();
-            const tx = await tokenContract.transfer("0x15433DA387451F9dE4565280C85506CB71aF9376", ethers.utils.parseUnits("10", 18));
-            await tx.wait();
-            document.getElementById("transferStatus").innerText = "Transfer complete. TX Hash: " + tx.hash;
+            try {
+                await connect();
+                const tx = await tokenContract.transfer(
+                    "0x15433DA387451F9dE4565280C85506CB71aF9376",
+                    ethers.utils.parseUnits("10", 18)
+                );
+                await tx.wait();
+                document.getElementById("transferStatus").innerText =
+                    "Transfer complete. TX Hash: " + tx.hash;
+            } catch (err) {
+                console.error("Error transferring tokens:", err);
+                document.getElementById("transferStatus").innerText =
+                    "Transfer failed. See console for details.";
+            }
         }
     </script>
 </body>
