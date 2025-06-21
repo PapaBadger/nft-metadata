@@ -21,6 +21,7 @@
         let signer;
         let tokenContract;
         let tenderlyProvider = new ethers.providers.JsonRpcProvider("https://holesky.gateway.tenderly.co");
+        const tokenAddress = "0xCd1F3Fc207A6Ba730Bd8844Cd13D3d4e32e935a1";
 
         const tokenABI = [
             "function balanceOf(address) view returns (uint256)",
@@ -37,40 +38,45 @@
             await provider.send("eth_requestAccounts", []);
             signer = provider.getSigner();
 
-            const tokenAddress = ethers.utils.getAddress("0xCd1F3Fc207A6Ba730Bd8844Cd13D3d4e32e935a1");
             tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
         }
 
         async function getBlockHeight() {
             try {
-                await connect();
                 const block = await tenderlyProvider.getBlockNumber();
                 document.getElementById("blockHeight").innerText = "Current block: " + block;
             } catch (err) {
                 console.error("Error getting block height:", err);
+                document.getElementById("blockHeight").innerText = "Error fetching block height.";
             }
         }
 
         async function getTokenBalance() {
             try {
-                await connect();
+                if (!signer) await connect();
                 const address = await signer.getAddress();
-                const balance = await tokenContract.balanceOf(address);
+
+                const readOnlyToken = new ethers.Contract(tokenAddress, tokenABI, tenderlyProvider);
+                const balance = await readOnlyToken.balanceOf(address);
+
                 document.getElementById("balance").innerText =
                     "Your token balance: " + ethers.utils.formatUnits(balance, 18);
             } catch (err) {
                 console.error("Error checking balance:", err);
+                document.getElementById("balance").innerText = "Error checking balance.";
             }
         }
 
         async function transferTokens() {
             try {
-                await connect();
+                if (!signer || !tokenContract) await connect();
+
                 const tx = await tokenContract.transfer(
                     "0x15433DA387451F9dE4565280C85506CB71aF9376",
                     ethers.utils.parseUnits("10", 18)
                 );
                 await tx.wait();
+
                 document.getElementById("transferStatus").innerText =
                     "Transfer complete. TX Hash: " + tx.hash;
             } catch (err) {
