@@ -20,6 +20,7 @@
         let provider;
         let signer;
         let tokenContract;
+        let tenderlyProvider = new ethers.providers.JsonRpcProvider("https://holesky.gateway.tenderly.co");
 
         const tokenABI = [
             "function balanceOf(address) view returns (uint256)",
