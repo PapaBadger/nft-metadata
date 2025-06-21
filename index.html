@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ERC20 dApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    <h1>ERC20 Token Interaction</h1>
+
+    <button onclick="getBlockHeight()">Get Block Height</button>
+    <p id="blockHeight"></p>
+
+    <button onclick="getTokenBalance()">Check Token Balance</button>
+    <p id="balance"></p>
+
+    <button onclick="transferTokens()">Transfer 10 Tokens</button>
+    <p id="transferStatus"></p>
+
+    <script>
+        let provider;
+        let signer;
+        let tokenContract;
+
+        const tokenAddress = "0xcd1F3fC207a6BA730Bd8844Cd13D3d4e32E935A1";
+        const tokenABI = [
+            // Minimal ERC20 ABI
+            "function balanceOf(address) view returns (uint256)",
+            "function transfer(address to, uint amount) returns (bool)"
+        ];
+
+        async function connect() {
+            if (!window.ethereum) {
+                alert("Please install MetaMask");
+                return;
+            }
+
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = provider.getSigner();
+            tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
+        }
+
+        async function getBlockHeight() {
+            await connect();
+            const block = await provider.getBlockNumber();
+            document.getElementById("blockHeight").innerText = "Current block: " + block;
+        }
+
+        async function getTokenBalance() {
+            await connect();
+            const address = await signer.getAddress();
+            const balance = await tokenContract.balanceOf(address);
+            document.getElementById("balance").innerText = "Your token balance: " + ethers.utils.formatUnits(balance, 18);
+        }
+
+        async function transferTokens() {
+            await connect();
+            const tx = await tokenContract.transfer("0x15433DA387451F9dE4565280C85506CB71aF9376", ethers.utils.parseUnits("10", 18));
+            await tx.wait();
+            document.getElementById("transferStatus").innerText = "Transfer complete. TX Hash: " + tx.hash;
+        }
+    </script>
+</body>
+</html>
